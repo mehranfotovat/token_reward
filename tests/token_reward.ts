@@ -101,12 +101,16 @@ describe("token_reward", () => {
 
   it("Create Token With Program!", async () => {
     const MINOR_UNITS_PER_MAJOR_UNITS = Math.pow(10, 6);
+    const [tokenPDA, bump] = anchor.web3.PublicKey.findProgramAddressSync(
+      [payer.publicKey.toBuffer()],
+      program.programId
+    );
 
     //TODO: token mint
     const tokenMint = await createMint(
       provider.connection,
       payer,
-      payer.publicKey,
+      tokenPDA,
       null,
       DECIMAL
     );
@@ -115,18 +119,22 @@ describe("token_reward", () => {
       provider.connection,
       payer,
       tokenMint,
-      payer.publicKey,
-    )
+      tokenPDA,
+      true
+    );
 
+    console.log("bump is: ", bump);
     console.log("Payer account: ", payer.publicKey.toBase58());
     console.log("My program token Mint address: ", tokenMint.toBase58());
     console.log("My ATA account: ", tokenAccount.address.toBase58());
+    console.log("My token PDA account: ", tokenPDA.toBase58());
 
     const mintTokenTx = await program.methods.mintToken(new anchor.BN(100 * MINOR_UNITS_PER_MAJOR_UNITS)).accounts({
       tokenMint: tokenMint,
       tokenAccount: tokenAccount.address,
-      payer: payer.publicKey
+      payer: payer.publicKey,
+      tokenPda: tokenPDA
     }).signers([payer]).rpc();
-    console.log(mintTokenTx);
+    console.log("token mint transaction: ",mintTokenTx);
   });
 });
