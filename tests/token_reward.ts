@@ -100,6 +100,8 @@ describe("token_reward", () => {
   // });
 
   it("Create Token With Program!", async () => {
+    console.log("Minting token functionality: ");
+
     const MINOR_UNITS_PER_MAJOR_UNITS = Math.pow(10, 6);
     const [tokenPDA, bump] = anchor.web3.PublicKey.findProgramAddressSync(
       [payer.publicKey.toBuffer()],
@@ -139,6 +141,7 @@ describe("token_reward", () => {
 
     // token transfer part:
     console.log("***********************");
+    console.log("Test transfer functionality: ");
 
     const tokenRecieverAddress = new anchor.web3.Keypair();
   
