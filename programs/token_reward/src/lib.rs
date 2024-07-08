@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token, TokenAccount, MintTo};
+use anchor_spl::token::{Mint, Token, TokenAccount, MintTo, Transfer};
 
 declare_id!("E9yxiWvqXm76keKtxZ5MFQpdpJfDJThgvX85tpVWdzPQ");
 
@@ -36,6 +36,27 @@ pub mod token_reward {
         let cpi_ctx = CpiContext::new(cpi_program, cpi_account).with_signer(signer);
 
         token::mint_to(cpi_ctx, amount)?;
+        Ok(())
+    }
+
+    pub fn transfer_token(ctx: Context<TransferToken>, amount: u64, bump: u64) -> Result<()> {
+        //create signer seed
+        let seed = ctx.accounts.payer.key();
+        let bump_seed = bump as u8;
+        let signer: &[&[&[u8]]] = &[&[seed.as_ref(), &[bump_seed]]];
+        // Create the Transfer struct for our context
+        let transfer_instruction = Transfer {
+            from: ctx.accounts.from_token_account.to_account_info(),
+            to: ctx.accounts.to_token_account.to_account_info(),
+            authority: ctx.accounts.token_pda.to_account_info(),
+        };
+        // token program account
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        // Create the Context for our Transfer request
+        let cpi_ctx = CpiContext::new(cpi_program, transfer_instruction).with_signer(signer);
+
+        // Execute anchor's helper function to transfer tokens
+        anchor_spl::token::transfer(cpi_ctx, amount)?;
         Ok(())
     }
 }
@@ -78,4 +99,19 @@ pub struct MintToken<'info> {
     )]
     pub token_pda: AccountInfo<'info>,
     pub system_program: Program<'info, System>
+}
+
+#[derive(Accounts)]
+pub struct TransferToken<'info> {
+    pub token_program: Program<'info, Token>,
+    #[account(mut)]
+    pub from_token_account: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub to_token_account: Account<'info, TokenAccount>,
+    /// CHECK: (authority pda)
+    #[account(mut)]
+    pub token_pda: AccountInfo<'info>,
+    /// CHECK: payer account (authority) 
+    #[account(mut)]
+    pub payer: Signer<'info>,
 }

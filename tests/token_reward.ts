@@ -136,5 +136,26 @@ describe("token_reward", () => {
       tokenPda: tokenPDA
     }).signers([payer]).rpc();
     console.log("token mint transaction: ",mintTokenTx);
+
+    // token transfer part:
+    const tokenRecieverAddress = new anchor.web3.Keypair();
+  
+    const tokenRecieverTokenAddress = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      payer,
+      tokenMint,
+      tokenRecieverAddress.publicKey
+    );
+
+    console.log("token reciever ata account: ", tokenRecieverTokenAddress.address.toBase58());
+
+    const transferTokenTx = await program.methods.transferToken(new anchor.BN(5 * MINOR_UNITS_PER_MAJOR_UNITS), new anchor.BN(bump)).accounts({
+      fromTokenAccount: tokenAccount.address,
+      toTokenAccount: tokenRecieverTokenAddress.address,
+      payer:payer.publicKey,
+      tokenPda: tokenPDA
+    }).signers([payer]).rpc();
+
+    console.log("Transfer Token Transaction: ", transferTokenTx);
   });
 });
