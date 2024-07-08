@@ -138,6 +138,8 @@ describe("token_reward", () => {
     console.log("token mint transaction: ",mintTokenTx);
 
     // token transfer part:
+    console.log("***********************");
+    
     const tokenRecieverAddress = new anchor.web3.Keypair();
   
     const tokenRecieverTokenAddress = await getOrCreateAssociatedTokenAccount(
