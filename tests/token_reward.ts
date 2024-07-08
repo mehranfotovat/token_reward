@@ -139,7 +139,7 @@ describe("token_reward", () => {
 
     // token transfer part:
     console.log("***********************");
-    
+
     const tokenRecieverAddress = new anchor.web3.Keypair();
   
     const tokenRecieverTokenAddress = await getOrCreateAssociatedTokenAccount(
@@ -162,6 +162,7 @@ describe("token_reward", () => {
     
     // Get rewarded with sending nft
     console.log("***********************");
+    console.log("Get rewarded with sending nft: ");
 
     const nftTokenRecieverAddress = new anchor.web3.Keypair();
 
