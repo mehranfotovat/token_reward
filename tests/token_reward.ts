@@ -157,5 +157,40 @@ describe("token_reward", () => {
     }).signers([payer]).rpc();
 
     console.log("Transfer Token Transaction: ", transferTokenTx);
+    
+    // Get rewarded with sending nft
+    console.log("***********************");
+
+    const nftTokenRecieverAddress = new anchor.web3.Keypair();
+
+    const nftTokenRecieverTokenAddress = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      payer,
+      tokenMint,
+      nftTokenRecieverAddress.publicKey
+    );
+
+    const tokenNFTMint = await createMint(
+      provider.connection,
+      payer,
+      nftTokenRecieverAddress.publicKey,
+      null, //payer.publicKey,
+      0,
+    );
+
+    console.log("nft token reciever Address: ", nftTokenRecieverAddress.publicKey.toBase58());
+    console.log("nft token reciever ATA: ", nftTokenRecieverTokenAddress.address.toBase58());
+    console.log("nft token: ", tokenNFTMint.toBase58());
+
+    const tokenRewardTx = await program.methods.getReward(new anchor.BN(5 * MINOR_UNITS_PER_MAJOR_UNITS), new anchor.BN(bump)).accounts({
+      fromTokenAccount: tokenAccount.address,
+      toTokenAccount: nftTokenRecieverTokenAddress.address,
+      nftProgram: tokenNFTMint,
+      payer: payer.publicKey,
+      tokenPda: tokenPDA,
+    }).signers([payer]).rpc();
+    
+    console.log("Token reward Tx: ", tokenRewardTx);
   });
+
 });

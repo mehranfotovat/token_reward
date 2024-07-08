@@ -59,6 +59,33 @@ pub mod token_reward {
         anchor_spl::token::transfer(cpi_ctx, amount)?;
         Ok(())
     }
+
+    pub fn get_reward(ctx:Context<GetReward>, amount: u64, bump: u64) -> Result<()> {
+        let nft_account = &mut ctx.accounts.nft_program;
+        if nft_account.decimals != 0 {
+            msg!("You Didn't send any nft to get rewarded!");
+            return Ok(())
+        }
+        //create signer seed
+        let seed = ctx.accounts.payer.key();
+        let bump_seed = bump as u8;
+        let signer: &[&[&[u8]]] = &[&[seed.as_ref(), &[bump_seed]]];
+        // Create the Transfer struct for our context
+        let transfer_instruction = Transfer {
+            from: ctx.accounts.from_token_account.to_account_info(),
+            to: ctx.accounts.to_token_account.to_account_info(),
+            authority: ctx.accounts.token_pda.to_account_info(),
+        };
+        // token program account
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        // Create the Context for our Transfer request
+        let cpi_ctx = CpiContext::new(cpi_program, transfer_instruction).with_signer(signer);
+
+        // Execute anchor's helper function to transfer tokens
+        anchor_spl::token::transfer(cpi_ctx, amount)?;
+        Ok(())
+    }
+
 }
 
 #[derive(Accounts)]
@@ -114,4 +141,20 @@ pub struct TransferToken<'info> {
     /// CHECK: payer account (authority) 
     #[account(mut)]
     pub payer: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct GetReward<'info> {
+    pub token_program: Program<'info, Token>,
+    #[account(mut)]
+    pub from_token_account: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub to_token_account: Account<'info, TokenAccount>,
+    /// CHECK: (authority pda)
+    #[account(mut)]
+    pub token_pda: AccountInfo<'info>,
+    /// CHECK: payer account (authority) 
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub nft_program: Account<'info, Mint>,
 }
